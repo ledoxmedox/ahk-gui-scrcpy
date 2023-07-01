@@ -1,0 +1,1 @@
+scrcpy.exe --no-video
