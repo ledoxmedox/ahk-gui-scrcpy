@@ -1,0 +1,20 @@
+Wireless TCP/IP:
+-e
+
+Wired USB:
+-d
+
+Turn the device screen off while mirroring:
+--turn-screen-off
+
+Disable audio:
+--no-audio
+
+Power off screen on close:
+--power-off-on-close
+
+Stay awake screen:
+--stay-awake
+
+No mirror screen (Only audio):
+--no-video

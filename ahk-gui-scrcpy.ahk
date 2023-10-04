@@ -9,24 +9,25 @@ title= 
 
 #SingleInstance, Force
 Menu, Tray, MainWindow 
-Menu, AppMenu2, Add, @cmd, run1
-Menu, AppMenu2, Add, Close All`tCtrl+W, run2
-Menu, AppMenu2, Add, Shortcuts, run3
-Menu, AppMenu2, Add, Edit this ahk, run4
-Menu, AppMenu2, Add, Open Directory, run5
-Menu, AppMenu2, Add, About, run99
-Menu, MyMenuBar, Add, &File, :Tray
-Menu, MyMenuBar, Add, &?, :AppMenu2
+Menu, AppMenu2, Add, cmd, run1
+Menu, AppMenu2, Add, terminate-all`tCtrl+W, run2
+Menu, AppMenu2, Add, shortcuts, run3
+Menu, AppMenu2, Add, edit-this-ahk, run4
+Menu, AppMenu2, Add, open-directory, run5
+Menu, AppMenu2, Add, note-parameter-things, run6
+Menu, AppMenu2, Add, about, run99
+Menu, MyMenuBar, Add, &file, :Tray
+Menu, MyMenuBar, Add, &things, :AppMenu2
 
 Gui, Menu, MyMenuBar
 Gui, Add, Checkbox, vMyVariable, Checkbox  0
-GuiControl,, Myvariable, edit mode
+GuiControl,, Myvariable, edit-mode
 Gui, Add, Button, w170 gButton1, adb (start/restart)
 Gui, Add, Button, w170 gButton2, scrcpy (usb)
 Gui, Add, Button, w170 gButton3, scrcpy (tcp/ip)
-Gui, Add, Button, w170 gButton4, scrcpy (audio only)
-Gui, Add, Button, w170 gButton7, adb (set volume)
-Gui, Add, Button, w170 gButton8, adb (battery percentage)
+Gui, Add, Button, w170 gButton4, scrcpy (audio-only)
+Gui, Add, Button, w170 gButton7, adb (set-volume)
+Gui, Add, Button, w170 gButton8, adb (battery-percentage)
 Gui, Add, Text, w170 h30 Center gMove, click here to drag
 Gui, Show, xCenter x0, %title%
 return
@@ -56,9 +57,13 @@ run4:
 run5:
 	run, %A_ScriptDir%
 	Return
+
+run6:
+	run, parameter-things.txt
+	Return
 	
 run99:
-	MsgBox, hi 
+	MsgBox, test123
 	Return
 
 Button1:
