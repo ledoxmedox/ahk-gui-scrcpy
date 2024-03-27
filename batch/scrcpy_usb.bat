@@ -1,1 +1,1 @@
-scrcpy.exe -d --power-off-on-close --stay-awake --no-audio
+scrcpy.exe -d --power-off-on-close --stay-awake
