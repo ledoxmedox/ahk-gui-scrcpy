@@ -4,65 +4,56 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 Gui, +AlwaysOnTop 
-
-title= 
+title=
 
 #SingleInstance, Force
 Menu, Tray, MainWindow 
-Menu, AppMenu2, Add, cmd, run1
-Menu, AppMenu2, Add, terminate-all`tCtrl+W, run2
-Menu, AppMenu2, Add, shortcuts, run3
-Menu, AppMenu2, Add, edit-this-ahk, run4
-Menu, AppMenu2, Add, open-directory, run5
-Menu, AppMenu2, Add, note-parameter-things, run6
-Menu, AppMenu2, Add, about, run99
+Menu, AppMenu2, Add, cmd, runCmd
+Menu, AppMenu2, Add, terminate all`tCtrl+W, guiclose
+Menu, AppMenu2, Add, open directory, runOpenDirectory
+Menu, AppMenu2, Add, check current volume, runCheckCurrentVolume
+Menu, AppMenu2, Add, check scrcpy version, runCheckScrcpyVersion
+Menu, AppMenu2, Add, about, runAboutAhk
+
 Menu, MyMenuBar, Add, &file, :Tray
 Menu, MyMenuBar, Add, &things, :AppMenu2
-
 Gui, Menu, MyMenuBar
-Gui, Add, Checkbox, vMyVariable, Checkbox  0
-GuiControl,, Myvariable, edit-mode
-Gui, Add, Button, w170 gButton1, adb (start/restart)
-Gui, Add, Button, w170 gButton2, scrcpy (usb)
-Gui, Add, Button, w170 gButton3, scrcpy (tcp/ip)
-Gui, Add, Button, w170 gButton4, scrcpy (audio-only)
-Gui, Add, Button, w170 gButton7, adb (set-volume)
-Gui, Add, Button, w170 gButton8, adb (battery-percentage)
-Gui, Add, Text, w170 h30 Center gMove, click here to drag
+
+Gui, Add, Checkbox, vMyVariable, Checkbox 0
+GuiControl,, Myvariable, % "edit mode"
+Gui, Add, Button, w157 gButton1, % "adb (start/restart)"
+Gui, Add, Button, w157 gButton2, % "scrcpy (usb)"
+Gui, Add, Button, w157 gButton3, % "scrcpy (tcp/ip)"
+Gui, Add, Button, w157 gButton4, % "scrcpy (audio only)"
+Gui, Add, Button, w111 gButton5, % "adb (set volume)"
+Gui, Add, Button, w157 gButton6, % "adb (battery%)"
+Gui, Add, Button, w38 y199 x10 gButtonPrevious, % "|<<" 
+Gui, Add, Button, w38 y199 x69 gButtonPlayPause, % ">||"
+Gui, Add, Button, w38 y199 x129 gButtonNext, % ">>|"
+
+Gui, Add, Edit, w41 y142 x125 vMyEdit,
+Gui, Add, UpDown, vMyUpDown Range0-15,
+
 Gui, Show, xCenter x0, %title%
 return
 
-Move:
-	PostMessage, 0xA1, 2,,, A 
-	Return
-
-run1:
+runCmd:
 	run, cmd %A_ScriptDir%
 	Return
-
-run2:
-	run, taskkill /f /im adb.exe
-	run, taskkill /f /im scrcpy.exe
-	ExitApp
-	Return
 	
-run3:
-	run, "https://github.com/Genymobile/scrcpy/blob/master/doc/shortcuts.md"
-	Return
-	
-run4:
-	run, notepad %A_ScriptName%
-	Return
-	
-run5:
+runOpenDirectory:
 	run, %A_ScriptDir%
 	Return
 
-run6:
-	run, parameter-things.txt
+runCheckCurrentVolume:
+	run, "batch\adb-check_volume.bat"
+	Return
+
+runCheckScrcpyVersion:
+	run, "batch\adb-check_scrcpy_version.bat"
 	Return
 	
-run99:
+runAboutAhk:
 	MsgBox, test123
 	Return
 
@@ -71,12 +62,12 @@ Button1:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\start_restart_adb.bat"
+			run,"batch\adb-start_restart.bat"
 			return
 		}
 		else
 		{
-			run, notepad "batch\start_restart_adb.bat"
+			run, notepad "batch\adb-start_restart.bat"
 			return
 		}
 	}
@@ -86,12 +77,12 @@ Button2:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\scrcpy_usb.bat"
+			run,"batch\scrcpy-usb.bat"
 			return
 		}
 		else
 		{
-			run, notepad "batch\scrcpy_usb.bat"
+			run, notepad "batch\scrcpy-usb.bat"
 			return
 		}
 	}
@@ -101,12 +92,12 @@ Button3:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\scrcpy_tcpip.bat"
+			run,"batch\scrcpy-tcpip.bat"
 			return
 		}
 		else
 		{
-			run, notepad "batch\scrcpy_tcpip.bat"
+			run, notepad "batch\scrcpy-tcpip.bat"
 			return
 		}
 	}
@@ -116,45 +107,90 @@ Button4:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\scrcpy_audio.bat"
+			run,"batch\scrcpy-audio.bat"
 			return
 		}
 		else
 		{
-			run, notepad "batch\scrcpy_audio.bat"
+			run, notepad "batch\scrcpy-audio.bat"
 			return
 		}
 	}
 
-Button7:
+Button5:	
 	{
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\set_volume_adb.bat"
+			Gui, Submit, NoHide
+			run, adb shell cmd media_session volume --show --stream 3 --set %MyUpDown%
 			return
 		}
 		else
 		{
-			run, notepad "batch\set_volume_adb.bat"
 			return
 		}
 	}
 	
-Button8:
+Button6:
 	{
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\check_battery_percentage.bat"
+			run,"batch\adb-check_battery_percentage.bat"
 			return
 		}
 		else
 		{
-			run, notepad "batch\check_battery_percentage.bat"
+			run, notepad "batch\adb-check_battery_percentage.bat"
 			return
 		}
 	}
+
+ButtonPrevious:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, adb shell cmd media_session dispatch previous
+			Return
+		}
+		else
+		{
+			return
+		}
+	}
+	
+
+ButtonNext:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+	run, adb shell cmd media_session dispatch next
+	Return
+			}
+		else
+		{
+		return
+		}
+	}
+	
+
+ButtonPlayPause:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+	run, adb shell input keyevent 85
+	Return
+			}
+		else
+		{
+		return
+		}
+	}
+	
 
 return
 
