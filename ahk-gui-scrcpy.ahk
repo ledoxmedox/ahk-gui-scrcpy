@@ -167,12 +167,12 @@ ButtonNext:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-	run, adb shell cmd media_session dispatch next
-	Return
-			}
+			run, adb shell cmd media_session dispatch next
+			Return
+		}
 		else
 		{
-		return
+			return
 		}
 	}
 	
@@ -182,12 +182,12 @@ ButtonPlayPause:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-	run, adb shell input keyevent 85
-	Return
-			}
+			run, adb shell input keyevent 85
+			Return
+		}
 		else
 		{
-		return
+			return
 		}
 	}
 	
