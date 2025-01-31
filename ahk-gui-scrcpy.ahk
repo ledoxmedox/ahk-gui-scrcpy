@@ -1,16 +1,14 @@
-﻿#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
-; #Warn  ; Enable warnings to assist with detecting common errors.
-SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
+﻿#NoTrayIcon
+#SingleInstance, Force
 
-Gui, +AlwaysOnTop 
+Gui, +AlwaysOnTop
 title=
 
-#SingleInstance, Force
 Menu, Tray, MainWindow 
 Menu, AppMenu2, Add, cmd, runCmd
-Menu, AppMenu2, Add, terminate all`tCtrl+W, guiclose
+Menu, AppMenu2, Add, terminate all`tCtrl+W, runTerminateAll
 Menu, AppMenu2, Add, open directory, runOpenDirectory
+Menu, AppMenu2, Add, install/update latest scrcpy, runUpdateScrcpy
 Menu, AppMenu2, Add, check current volume, runCheckCurrentVolume
 Menu, AppMenu2, Add, check scrcpy version, runCheckScrcpyVersion
 Menu, AppMenu2, Add, about, runAboutAhk
@@ -19,43 +17,127 @@ Menu, MyMenuBar, Add, &file, :Tray
 Menu, MyMenuBar, Add, &things, :AppMenu2
 Gui, Menu, MyMenuBar
 
-Gui, Add, Checkbox, vMyVariable, Checkbox 0
+Gui, Add, Checkbox, x10 vMyVariable, Checkbox 0
 GuiControl,, Myvariable, % "edit mode"
-Gui, Add, Button, w157 gButton1, % "adb (start/restart)"
-Gui, Add, Button, w157 gButton2, % "scrcpy (usb)"
-Gui, Add, Button, w157 gButton3, % "scrcpy (tcp/ip)"
-Gui, Add, Button, w157 gButton4, % "scrcpy (audio only)"
-Gui, Add, Button, w111 gButton5, % "adb (set volume)"
-Gui, Add, Button, w157 gButton6, % "adb (battery%)"
+
+Gui, Add, Button, x10 w157 gButton1, % "adb (start/restart)"
+Gui, Add, Button, x10 w157 gButton2, % "scrcpy (usb)"
+Gui, Add, Button, x10 w157 gButton3, % "scrcpy (tcp/ip)"
+Gui, Add, Button, x10 w157 gButton4, % "scrcpy (audio only)"
+Gui, Add, Button, x10 w111 gButton5, % "adb (set volume)"
+Gui, Add, Button, x10 w157 gButton6, % "adb (battery%)"
 Gui, Add, Button, w38 y199 x10 gButtonPrevious, % "|<<" 
 Gui, Add, Button, w38 y199 x69 gButtonPlayPause, % ">||"
 Gui, Add, Button, w38 y199 x129 gButtonNext, % ">>|"
-
 Gui, Add, Edit, w41 y142 x125 vMyEdit,
 Gui, Add, UpDown, vMyUpDown Range0-15,
 
 Gui, Show, xCenter x0, %title%
 return
-
-runCmd:
-	run, cmd %A_ScriptDir%
-	Return
 	
-runOpenDirectory:
-	run, %A_ScriptDir%
-	Return
+runCmd:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, cmd %A_ScriptDir%
+			return
+		}
+		else
+		{
+			return
+		}
+	}
+	
+runTerminateAll:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, taskkill /f /im adb.exe
+			run, taskkill /f /im scrcpy.exe
+			ExitApp
+			return
+		}
+		else
+		{
+			return
+		}
+	}
 
+runOpenDirectory:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, %A_ScriptDir%
+			return
+		}
+		else
+		{
+			return
+		}
+	}
+
+runUpdateScrcpy:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, powershell -file "update-scrcpy.ps1"
+			return
+		}
+		else
+		{
+			run, notepad "update-scrcpy.ps1"
+			return
+		}
+	}
+	
 runCheckCurrentVolume:
-	run, "batch\adb-check_volume.bat"
-	Return
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, "batch\adb-check_volume.bat"
+			return
+		}
+		else
+		{
+			run, notepad "batch\adb-check_volume.bat"
+			return
+		}
+	}
 
 runCheckScrcpyVersion:
-	run, "batch\adb-check_scrcpy_version.bat"
-	Return
-	
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			run, "batch\adb-check_scrcpy_version.bat"
+			return
+		}
+		else
+		{
+			run, notepad "batch\adb-check_scrcpy_version.bat"
+			return
+		}
+	}
+
+
 runAboutAhk:
-	MsgBox, test123
-	Return
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			MsgBox, test123
+			return
+		}
+		else
+		{
+			return
+		}
+	}
 
 Button1:
 	{
@@ -167,12 +249,12 @@ ButtonNext:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run, adb shell cmd media_session dispatch next
-			Return
-		}
+	run, adb shell cmd media_session dispatch next
+	Return
+			}
 		else
 		{
-			return
+		return
 		}
 	}
 	
@@ -182,16 +264,14 @@ ButtonPlayPause:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run, adb shell input keyevent 85
-			Return
-		}
+	run, adb shell input keyevent 85
+	Return
+			}
 		else
 		{
-			return
+		return
 		}
 	}
-	
-
 return
 
 guiclose:
@@ -199,3 +279,4 @@ guiclose:
 	run, taskkill /f /im scrcpy.exe
 	ExitApp
 	return
+

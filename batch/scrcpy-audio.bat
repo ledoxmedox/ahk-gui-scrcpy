@@ -1,1 +1,1 @@
-scrcpy.exe --no-video --audio-output-buffer=30
+scrcpy.exe --no-control --no-video --audio-output-buffer=30
