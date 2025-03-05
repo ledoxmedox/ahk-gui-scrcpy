@@ -84,7 +84,7 @@ runUpdateScrcpy:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run, powershell -file "update-scrcpy.ps1"
+			run, powershell -ExecutionPolicy Bypass -file "update-scrcpy.ps1"
 			return
 		}
 		else
