@@ -1,6 +1,9 @@
 ﻿#NoTrayIcon
 #SingleInstance, Force
 
+IniFile := A_ScriptDir . "\settings.ini"
+IniRead, SavedIP, %IniFile%, Settings, DeviceIP, 
+
 Gui, +AlwaysOnTop
 title=
 
@@ -20,16 +23,17 @@ Gui, Menu, MyMenuBar
 Gui, Add, Checkbox, x10 vMyVariable, Checkbox 0
 GuiControl,, Myvariable, % "edit mode"
 
+Gui, Add, Edit, x10 w157 vDeviceIP, %SavedIP%
 Gui, Add, Button, x10 w157 gButton1, % "adb (start/restart)"
 Gui, Add, Button, x10 w157 gButton2, % "scrcpy (usb)"
 Gui, Add, Button, x10 w157 gButton3, % "scrcpy (tcp/ip)"
 Gui, Add, Button, x10 w157 gButton4, % "scrcpy (audio only)"
 Gui, Add, Button, x10 w111 gButton5, % "adb (set volume)"
 Gui, Add, Button, x10 w157 gButton6, % "adb (battery%)"
-Gui, Add, Button, w38 y199 x10 gButtonPrevious, % "|<<" 
-Gui, Add, Button, w38 y199 x69 gButtonPlayPause, % ">||"
-Gui, Add, Button, w38 y199 x129 gButtonNext, % ">>|"
-Gui, Add, Edit, w41 y142 x125 vMyEdit,
+Gui, Add, Button, w38 y223 x10 gButtonPrevious, % "|<<" 
+Gui, Add, Button, w38 y223 x69 gButtonPlayPause, % ">||"
+Gui, Add, Button, w38 y223 x129 gButtonNext, % ">>|"
+Gui, Add, Edit, w41 y169 x125 vMyEdit,
 Gui, Add, UpDown, vMyUpDown Range0-15,
 
 Gui, Show, xCenter x0, %title%
@@ -144,7 +148,9 @@ Button1:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			run,"batch\adb-start_restart.bat"
+			Gui, Submit, NoHide
+			IniWrite, %DeviceIP%, %IniFile%, Settings, DeviceIP
+			Run, batch\adb-start_restart.bat %DeviceIP%
 			return
 		}
 		else
@@ -275,6 +281,8 @@ ButtonPlayPause:
 return
 
 guiclose:
+	Gui, Submit, NoHide
+	IniWrite, %DeviceIP%, %IniFile%, Settings, DeviceIP
 	run, taskkill /f /im adb.exe
 	run, taskkill /f /im scrcpy.exe
 	ExitApp
