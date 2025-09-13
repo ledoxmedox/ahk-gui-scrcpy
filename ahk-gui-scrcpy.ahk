@@ -28,12 +28,13 @@ Gui, Add, Button, x10 w157 gButton1, % "adb (start/restart)"
 Gui, Add, Button, x10 w157 gButton2, % "scrcpy (usb)"
 Gui, Add, Button, x10 w157 gButton3, % "scrcpy (tcp/ip)"
 Gui, Add, Button, x10 w157 gButton4, % "scrcpy (audio only)"
-Gui, Add, Button, x10 w111 gButton5, % "adb (set volume)"
+Gui, Add, Button, x10 w157 gButton5, % "adb (unlock)"
 Gui, Add, Button, x10 w157 gButton6, % "adb (battery%)"
-Gui, Add, Button, w38 y223 x10 gButtonPrevious, % "|<<" 
-Gui, Add, Button, w38 y223 x69 gButtonPlayPause, % ">||"
-Gui, Add, Button, w38 y223 x129 gButtonNext, % ">>|"
-Gui, Add, Edit, w41 y169 x125 vMyEdit,
+Gui, Add, Button, x10 w111 gButton7, % "adb (set volume)"
+Gui, Add, Button, w38 y253 x10 gButtonPrevious, % "|<<" 
+Gui, Add, Button, w38 y253 x69 gButtonPlayPause, % ">||"
+Gui, Add, Button, w38 y253 x127 gButtonNext, % ">>|"
+Gui, Add, Edit, w41 y227 x124 vMyEdit,
 Gui, Add, UpDown, vMyUpDown Range0-15,
 
 Gui, Show, xCenter x0, %title%
@@ -210,12 +211,12 @@ Button5:
 		GuiControlGet, Checked,,MyVariable
 		if (checked == 0)
 		{
-			Gui, Submit, NoHide
-			run, adb shell cmd media_session volume --show --stream 3 --set %MyUpDown%
+			run,"batch\adb-unlock.bat"
 			return
 		}
 		else
 		{
+			run, notepad "batch\adb-unlock.bat"
 			return
 		}
 	}
@@ -234,7 +235,23 @@ Button6:
 			return
 		}
 	}
+	
+Button7:
+	{
+		GuiControlGet, Checked,,MyVariable
+		if (checked == 0)
+		{
+			Gui, Submit, NoHide
+			run, adb shell cmd media_session volume --show --stream 3 --set %MyUpDown%
+			return
+		}
+		else
+		{
+			return
+		}
+	}
 
+	
 ButtonPrevious:
 	{
 		GuiControlGet, Checked,,MyVariable
