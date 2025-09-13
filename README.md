@@ -1,3 +1,3 @@
 # ahk-gui-scrcpy
 
-![](https://i.imgur.com/ubbsiM6.png)
+![](https://i.imgur.com/wQv3eGM.png)
