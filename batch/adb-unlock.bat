@@ -1,0 +1,1 @@
+adb shell "input keyevent 26; sleep 0.5; input swipe 500 1250 500 500 50; sleep 0.5; input text '123456'; input keyevent 66"
