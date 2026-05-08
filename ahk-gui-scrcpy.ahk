@@ -130,7 +130,6 @@ Gui, +AlwaysOnTop
 title=
 
 Menu, Tray, MainWindow 
-Menu, AppMenu2, Add, scrcpy audio only, runScrcpyAudioOnly
 Menu, AppMenu2, Add, cmd, runCmd
 Menu, AppMenu2, Add, terminate all`tCtrl+W, runTerminateAll
 Menu, AppMenu2, Add, open directory, runOpenDirectory
@@ -167,32 +166,6 @@ Gui, Add, UpDown, vMyUpDown Range0-15,
 Gui, Show, xCenter x0, %title%
 return
 	
-runScrcpyAudioOnly:
-Gui, Submit, NoHide
-
-run, taskkill /f /im adb.exe
-
-if (WirelessMode = 1)
-	{
-    	RunWait, adb connect %DeviceIP%, , Hide
-    	cmd := "scrcpy --tcpip=" . DeviceIP . " --no-video"
-	}
-	else if (AudioToggle = 1)
-	{
-    RunWait, adb connect %DeviceIP%, , Hide
-    cmd := "scrcpy --tcpip=" . DeviceIP . " --no-video"
-	}
-	else
-	{
-    cmd := "scrcpy" . " --no-video"
-	}
-
-Run, %cmd%
-
-runWait, taskkill /f /im adb.exe
-
-return
-
 runCmd:
 	{
 		GuiControlGet, Checked,,EditMode
@@ -299,7 +272,7 @@ runAboutAhk:
 
 Button2:
     Gui, Submit, NoHide
-	run, taskkill /f /im adb.exe
+
     ; Re-read args from INI in case user edited settings.ini manually
     IniRead, WiredArgs, %IniFile%, Settings, WiredCommandLine, --no-power-on --power-off-on-close
     IniRead, WirelessArgs, %IniFile%, Settings, WirelessCommandLine, --no-power-on --power-off-on-close
@@ -329,8 +302,8 @@ Button2:
     ; Audio toggle
     if (AudioToggle = 0) {
         cmd .= " --no-audio"
-    } else
-	
+    }
+
 	RunWait, taskkill /f /im scrcpy.exe
     Run, %cmd%
 return
@@ -423,17 +396,6 @@ ButtonPlayPause:
 		return
 		}
 	}
-return
-
-^r::
-    Reload
-	Gui, Submit, NoHide
-	IniWrite, %DeviceIP%, %IniFile%, Settings, DeviceIP
-	IniWrite, %WirelessMode%, %IniFile%, Settings, WirelessMode
-	IniWrite, %AudioToggle%, %IniFile%, Settings, AudioToggle
-	run, taskkill /f /im adb.exe
-	run, taskkill /f /im scrcpy.exe
-	ExitApp
 return
 
 guiclose:
