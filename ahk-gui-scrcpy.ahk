@@ -32,24 +32,63 @@ if !FileExist(ps1Path)
     FileAppend, $repo = "Genymobile/scrcpy"`n, %ps1Path%
     FileAppend, $path = "$PSScriptRoot"`n, %ps1Path%
     FileAppend, $tempExtractPath = Join-Path -Path $path -ChildPath "temp"`n, %ps1Path%
-    FileAppend, $apiUrl = "https://api.github.com/repos/$repo/releases/latest"`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend, Write-Host "Closing scrcpy and ADB to unlock files..."`n, %ps1Path%
+    FileAppend, # Kill scrcpy and adb so files can be overwritten`n, %ps1Path%
     FileAppend, Stop-Process -Force -Name scrcpy -ErrorAction SilentlyContinue`n, %ps1Path%
-    FileAppend, $release = Invoke-RestMethod -Uri $apiUrl`n, %ps1Path%
-    FileAppend, $asset = $release.assets | Where-Object { $_.name -match "win64.*\.zip$" }`n, %ps1Path%
-    FileAppend, if ($asset -ne $null) {`n, %ps1Path%
-    FileAppend,     $downloadUrl = $asset.browser_download_url`n, %ps1Path%
-    FileAppend,     $zipFilePath = Join-Path -Path $path -ChildPath $asset.name`n, %ps1Path%
-    FileAppend,     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFilePath`n, %ps1Path%
+    FileAppend, Stop-Process -Force -Name adb -ErrorAction SilentlyContinue`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend, # Give the system a second to fully release the file locks`n, %ps1Path%
+    FileAppend, Start-Sleep -Seconds 1`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend, # 1. Get the version tag by checking where the "latest" link redirects`n, %ps1Path%
+    FileAppend, $url = "https://github.com/$repo/releases/latest"`n, %ps1Path%
+    FileAppend, try {`n, %ps1Path%
+    FileAppend,     $request = Invoke-WebRequest -Uri $url -MaximumRedirection 5 -UserAgent "Mozilla/5.0"`n, %ps1Path%
+    FileAppend,     $finalUri = $request.BaseResponse.ResponseUri.ToString()`n, %ps1Path%
+    FileAppend,     `n, %ps1Path%
+    FileAppend,     # Extract the tag (e.g., v2.4) from the URL`n, %ps1Path%
+    FileAppend,     $tag = $finalUri.Split('/')[-1]`n, %ps1Path%
+    FileAppend,     `n, %ps1Path%
+    FileAppend,     if (-not $tag) { throw "Could not determine version tag." }`n, %ps1Path%
+    FileAppend,     `n, %ps1Path%
+    FileAppend,     # 2. Construct the download URL manually to bypass API limits`n, %ps1Path%
+    FileAppend,     $zipFileName = "scrcpy-win64-$tag.zip"`n, %ps1Path%
+    FileAppend,     $downloadUrl = "https://github.com/$repo/releases/download/$tag/$zipFileName"`n, %ps1Path%
+    FileAppend,     $zipFilePath = Join-Path -Path $path -ChildPath $zipFileName`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend,     Write-Host "Detected latest version: $tag"`n, %ps1Path%
+    FileAppend,     Write-Host "Downloading: $zipFileName"`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend,     # 3. Download the file`n, %ps1Path%
+    FileAppend,     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFilePath -UserAgent "Mozilla/5.0"`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend,     # 4. Extraction`n, %ps1Path%
     FileAppend,     if (-not (Test-Path -Path $tempExtractPath)) { New-Item -ItemType Directory -Path $tempExtractPath | Out-Null }`n, %ps1Path%
     FileAppend,     Expand-Archive -Path $zipFilePath -DestinationPath $tempExtractPath -Force`n, %ps1Path%
-    FileAppend,     $versionedFolder = Get-ChildItem -Path $tempExtractPath -Directory | Where-Object { $_.Name -match "^scrcpy-" }`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend,     # 5. Move files`n, %ps1Path%
+    FileAppend,     # The zip contains a folder like "scrcpy-win64-v2.4", we find that folder first`n, %ps1Path%
+    FileAppend,     $versionedFolder = Get-ChildItem -Path $tempExtractPath -Directory | Where-Object { $_.Name -match "scrcpy-win64" }`n, %ps1Path%
+    FileAppend,     `n, %ps1Path%
     FileAppend,     if ($versionedFolder) {`n, %ps1Path%
     FileAppend,         $sourceFolder = $versionedFolder.FullName`n, %ps1Path%
+    FileAppend,         Write-Host "Updating files in $path..."`n, %ps1Path%
+    FileAppend,         # Move-Item -Force will overwrite existing files`n, %ps1Path%
     FileAppend,         Get-ChildItem -Path $sourceFolder | Move-Item -Destination $path -Force`n, %ps1Path%
     FileAppend,     }`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend,     # 6. Cleanup`n, %ps1Path%
     FileAppend,     Remove-Item -Path $tempExtractPath -Recurse -Force`n, %ps1Path%
     FileAppend,     Remove-Item -Path $zipFilePath -Force`n, %ps1Path%
+    FileAppend,     `n, %ps1Path%
+    FileAppend,     Write-Host "Successfully updated to $tag and restarted ADB environment." -ForegroundColor Green`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend, } catch {`n, %ps1Path%
+    FileAppend,     Write-Error "Failed to update: $($_.Exception.Message)"`n, %ps1Path%
     FileAppend, }`n, %ps1Path%
+    FileAppend, `n, %ps1Path%
+    FileAppend, pause`n, %ps1Path%
 }
 
 ; 4. Create Batch Files
@@ -85,26 +124,38 @@ if !FileExist(bat5)
 if !FileExist(bat6)
 {
     FileAppend, @echo off`n, %bat6%
-    FileAppend, echo.`n, %bat6%
-    FileAppend, echo Latest release:`n, %bat6%
     FileAppend, setlocal enabledelayedexpansion`n, %bat6%
-    FileAppend, set "repo=Genymobile/scrcpy"`n, %bat6%
-    FileAppend, set "apiUrl=https://api.github.com/repos/%pc%repo%pc%/releases/latest"`n, %bat6%
-    FileAppend, curl -s %pc%apiUrl%pc% > release_info.json`n, %bat6%
-    FileAppend, for /f "tokens=*" %pc%%pc%i in ('findstr /i "win64" release_info.json') do (`n, %bat6%
-    FileAppend,     echo    %pc%%pc%i`n, %bat6%
-    FileAppend, )`n, %bat6%
-    FileAppend, del release_info.json`n, %bat6%
-    FileAppend, endlocal`n, %bat6%
     FileAppend, echo.`n, %bat6%
-    FileAppend, echo Current version:`n, %bat6%
-    FileAppend, for /f "delims=" %pc%%pc%i in ('scrcpy.exe -v') do (`n, %bat6%
-    FileAppend,     echo    %pc%%pc%i`n, %bat6%
-    FileAppend,     goto :end`n, %bat6%
+    FileAppend, echo Checking versions (Bypassing API)...`n, %bat6%
+    FileAppend, :: 1. Get the LATEST version tag from GitHub`n, %bat6%
+    FileAppend, for /f "delims=" %pc%%pc%a in ('curl -Ls -o NUL -w %pc%%pc%{url_effective} https://github.com/Genymobile/scrcpy/releases/latest') do (`n, %bat6%
+    FileAppend,     set "full_url=%pc%%pc%a"`n, %bat6%
+    FileAppend,     for %pc%%pc%b in ("!full_url:/=" "!") do set "latest=%pc%%pc%~b"`n, %bat6%
     FileAppend, )`n, %bat6%
-    FileAppend, :end`n, %bat6%
+    FileAppend, :: 2. Get the CURRENT local version from the .exe`n, %bat6%
+    FileAppend, set "current=Not Found"`n, %bat6%
+    FileAppend, if exist "scrcpy.exe" (`n, %bat6%
+    FileAppend,     for /f "tokens=2" %pc%%pc%v in ('scrcpy.exe -v 2^>nul ^| findstr /B "scrcpy"') do (`n, %bat6%
+    FileAppend,         set "current=v%pc%%pc%v"`n, %bat6%
+    FileAppend,     )`n, %bat6%
+    FileAppend, )`n, %bat6%
+    FileAppend, :: 3. Display Results`n, %bat6%
     FileAppend, echo.`n, %bat6%
-    FileAppend, timeout 7`n, %bat6%
+    FileAppend, echo Latest release:  !latest!`n, %bat6%
+    FileAppend, echo Current version: !current!`n, %bat6%
+    FileAppend, echo.`n, %bat6%
+    FileAppend, :: 4. Compare and Notify`n, %bat6%
+    FileAppend, if "!latest!"=="!current!" (`n, %bat6%
+    FileAppend,     echo [Status] You are up to date.`n, %bat6%
+    FileAppend, ) else (`n, %bat6%
+    FileAppend,     if "!current!"=="Not Found" (`n, %bat6%
+    FileAppend,         echo [Status] scrcpy is not installed in this folder.`n, %bat6%
+    FileAppend,     ) else (`n, %bat6%
+    FileAppend,         echo [Status] Update available! Run your PowerShell update script.`n, %bat6%
+    FileAppend,     )`n, %bat6%
+    FileAppend, )`n, %bat6%
+    FileAppend, echo.`n, %bat6%
+    FileAppend, timeout /t 7`n, %bat6%
 }
 
 IniFile := A_ScriptDir . "\settings.ini"
